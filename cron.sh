@@ -1,3 +1,3 @@
-cd ~/weather-matrix
+cd ~/bothouse/weather-matrix
 
 node weather-matrix.js
