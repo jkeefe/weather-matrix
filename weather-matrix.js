@@ -1,3 +1,12 @@
+// This code sits on a server and is executed regularly by a 
+// cron function. 
+// 
+// It fetches a forecast from the forecast.io api and feeds it
+// to my spark.io core. See the .ino file for that code.
+//
+// By John Keefe
+// http://johnkeefe.net
+
 var request = require('request'),
     moment = require('moment');
     keys = require('../api_keys/weather_matrix_keys');
