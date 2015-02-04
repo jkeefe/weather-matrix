@@ -4,6 +4,9 @@
 * 
 */
 
+// The next three include lines call in the libraries. To learn how
+// to add them to this project on the spark_io core, see:
+// 
 
 // This #include statement was automatically added by the Spark IDE.
 #include "neopixel/neopixel.h"
@@ -20,6 +23,7 @@
 #define PIXEL_PIN D2
 #define PIXEL_TYPE WS2812B
 
+// Carrying over the comments from the NEOMATRIX example application ...
 // MATRIX DECLARATION:
 // Parameter 1 = width of EACH NEOPIXEL MATRIX (not total display)
 // Parameter 2 = height of each matrix
@@ -82,37 +86,38 @@ uint32_t BLUE = matrix.Color(0,0,255);
 uint32_t AQUA = matrix.Color(2,132,130);
 uint32_t DARKBLUE = matrix.Color(0,0,125);
 
-// these will become variables sent to the core
+// Variable declaration ...
+String icon;         // 3 characters indicating forecast icon
+int temp = 0;        // the forecast temperature
+int tens_digit;      // the tens digit to display
+int ones_digit;      // the ones digit to display
+uint32_t text_color; // color for the text
 
-String icon; 
-int temp = 0;
-int tens_digit;
-int ones_digit;
-uint32_t text_color;
-
+// the setup section runs once
 void setup() {
 
   matrix.begin();
   matrix.setBrightness(60);
   
-  // expose the "forecast" component to the api
-  // and call parseForecast when you see it
+  // expose the "forecast" component to the api so it responds to
+  //   https://api.spark.io/v1/devices/DEVICE_ID/forecast
+  // and call the parseForecast function when you see it
   Spark.function("forecast", parseForecast);
 
   matrix.fillScreen(0); // clears the screen
 
 }
 
+// the loop section repeats forever
 void loop() {
     
-
   // SHOW THE WEATHER ICON
   
   // clear the screen
   matrix.fillScreen(0);
   
-  // matching draw functions to possible value for icon from
-  // https://developer.forecast.io/docs/v2
+  // match the draw functions to the value for icon 
+  // picked up from the server program
   if (icon == "sno") { drawSnow(); }
   if (icon == "rai") { drawRain(); }
   if (icon == "cle") { drawSun(); }
@@ -121,17 +126,18 @@ void loop() {
   if (icon == "fog") { drawFog(); }
   if (icon == "win") { drawWind(); }
   if (icon == "par") { drawPartlyCloudy(); }
+  // draws nothing if icon is empty or doesn't match
 
   matrix.show(); // light it up
   delay(2000); // wait 2 seconds
-
+  
 
   // SHOW THE TEMPERATURE
   
   // clear the screen
   matrix.fillScreen(0);
   
-  // set the text color for the temperature based on its value
+  // set the text color of the temperature based on its value
   if (temp >= 90 ) { text_color = RED; }
   else if (temp >= 80 ) { text_color = ORANGE; }
   else if (temp >= 70 ) { text_color = YELLOW; }
@@ -143,13 +149,13 @@ void loop() {
 
   // calculate and draw the ones digit
   ones_digit = temp % 10; // temp modulo 10 ... so 24 becomes 4
-  drawDigit(ones_digit, 5, text_color);
+  drawDigit(ones_digit, 5, text_color); // send the digit, the LED column and the color
   
   // calculate and draw the tens digit,
   // provided temp is at greater than 10 or less than -10
   if (temp >= 10 || temp <= -10) {
-    tens_digit = temp / 10; // all integers, so 24 becomes 2
-    drawDigit(tens_digit, 1, text_color);
+    tens_digit = temp / 10; // all are integers, so 24 becomes 2
+    drawDigit(tens_digit, 1, text_color); // send the digit, the LED column and the color
   }
   
   matrix.show(); // light it up
@@ -173,8 +179,7 @@ int parseForecast(String command){
     // ignore the night icons.
     String sentIcon = command.substring(3,6);
 
-    // update the icon variable with the first three letters of the value sent in
-    //sentIcon.toCharArray(icon, 4);
+    // update the icon variable with the first three letters of the value sent
     
     icon = sentIcon;
     
@@ -184,18 +189,20 @@ int parseForecast(String command){
 }
 
 
-// This draws digits based on the value of "digit", the y (column) position
-// and the color.
+// This function draws digits based on the passed value of "digit", 
+// the y (column) position, and the color.
 void drawDigit(int digit, int y, uint32_t textcolor) {
     
     bool negative = false;
     
-    // change a negative value into a positive digit
+    // if the temp is negative, note that and turn into a positive digit
     if (digit < 0) {
         digit = abs(digit);
         negative = true;
     }
     
+    // this picks a draw function based on the value of digit.
+    // if there is a more efficient way to do this, I'd love to hear it.
     switch (digit) {
         case 1:
             drawOne(y, textcolor);
@@ -238,7 +245,7 @@ void drawDigit(int digit, int y, uint32_t textcolor) {
             
     }
 
-    // draw the minus sign for negative numbers
+    // draw a white minus sign for negative numbers
     if (negative == true){
         matrix.drawLine( 2,0, 2,1, WHITE);
     }
@@ -247,12 +254,13 @@ void drawDigit(int digit, int y, uint32_t textcolor) {
 }
 
 // FUNCIONS FOR DRAWING ICONS
-
+// The defitions for drawLine, drawPixel, drawRect, etc are here:
+//  https://learn.adafruit.com/adafruit-gfx-graphics-library/graphics-primitives
 void drawSnow() {
     matrix.drawLine( 0,1, 0,6, BLUE);  // x1,y1, x2,y2, color
     matrix.drawLine( 1,0, 1,7, BLUE);
     matrix.drawLine( 2,1, 2,6, BLUE);
-    matrix.drawPixel( 3,2, WHITE);
+    matrix.drawPixel( 3,2, WHITE); // x1,y1, color
     matrix.drawPixel( 3,4, WHITE);
     matrix.drawPixel( 3,6, WHITE);
     matrix.drawPixel( 4,1, WHITE);
@@ -324,6 +332,10 @@ void drawWind() {
 
 // FUNCTIONS FOR DRAWING THE ACTUAL NUMBERS
 
+// each of the digit functions get passed
+// the LED matrix column to start in 
+// (which could be 0-7, but we only use 1 and 5)
+// and the color to use. 
 void drawOne(int y, uint32_t textcolor) {
     matrix.drawLine( 0,y+2, 4,y+2, textcolor ); // y is the upper-left corner's column
 }
@@ -379,6 +391,4 @@ void drawZero(int y, uint32_t textcolor) {
     matrix.drawRect( 0,y, 5, 3, textcolor);
 }
 
-void drawMinusSign() {
-    matrix.drawLine( 2,0, 2,1, GRAY);
-}
+

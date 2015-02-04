@@ -9,15 +9,16 @@
 
 var request = require('request'),
     moment = require('moment');
-    keys = require('../api_keys/weather_matrix_keys');
-    
-    // that last file holds my values for
-    // SPARK_DEVICE_ID      (use keys.SPARK_DEVICE_ID)
-    // SPARK_ACCESS_TOKEN   (use keys.SPARK_ACCESS_TOKEN)
-    // FORECAST_IO_API_KEY  (use keys.FORECAST_IO_API_KEY)
-    
 
+// The next line reads in a file with my api keys.
+// Delete it if you hard-code your keys into the code below
+var keys = require('../api_keys/weather_matrix_keys'); 
     
+    // that last line calls a file that holds my values for
+    // SPARK_DEVICE_ID      (called keys.SPARK_DEVICE_ID)
+    // SPARK_ACCESS_TOKEN   (called keys.SPARK_ACCESS_TOKEN)
+    // FORECAST_IO_API_KEY  (called keys.FORECAST_IO_API_KEY)
+
 // using latitude and longitude of central park
 var lat = 40.795, 
     lon = -73.956;
@@ -47,29 +48,32 @@ request(options, function (error, response, body){
         var send_string;
         
         // NOTE: The next section determines the time based on the
-        // forecast city. Since this is static here -- the forecast lat/lon
-        // is included above -- I could skip this and go off the server's time.
-        // But I've written this code before, and including it makes it more
-        // universal for anyone else.
+        // time and UTC offset provided by the api in the forecast.
+        // The time is used for picking either today's forecast (if it's
+        // currently before noon) or tomorrow's (if it's after noon)
         
-        // What time is it!?!
-        // Here current_local_time will be set to the time at the forecast location
-        var current_local_time = moment.unix(weather.currently.time);
+        // Here forecast_local_time will be set to the time at the forecast location
+        var forecast_local_time = moment.unix(weather.currently.time);
     
             // adjust the offset based on the one provided by forecast, 
             // so we are using times local to the forecast point.
-            current_local_time = current_local_time.utcOffset(weather.offset);
+            forecast_local_time = forecast_local_time.utcOffset(weather.offset);
             
             // // check it by uncommenting the next line
-            // console.log(current_local_time.format("dddd, MMMM Do YYYY, h:mm:ss a"));
+            // console.log(forecast_local_time.format("dddd, MMMM Do YYYY, h:mm:ss a"));
         
         // use today's forecast data[0] if it's before noon in the forecast location
         // use tomorrow's forecast data[1] if it's after noon in the forecast location
-        if (current_local_time.hour() < 12) {
+        if (forecast_local_time.hour() < 12) {
             forecast = weather.daily.data[0];
         } else {
             forecast = weather.daily.data[1];
         }
+        
+        // Now we're going to pick the parts we need to build
+        // a string to send. The first 3 characters will be 
+        // the temperature, buffered by spaces. The rest will be the
+        // icon label.
         
         // extract the high temperature from forecast.io
         // first get the number as a string, (base 10)
@@ -98,7 +102,7 @@ request(options, function (error, response, body){
     
 });
 
-// Send data to a spark core
+// This function sends data to a spark core
 function sendToSpark(data) {
 	
 	// set the headers
