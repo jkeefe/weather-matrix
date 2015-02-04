@@ -3,6 +3,9 @@
 // 
 // It fetches a forecast from the forecast.io api and feeds it
 // to my spark.io core. See the .ino file for that code.
+// 
+// For more details on this project, see
+//    http://johnkeefe.net/make-every-week-entryway-weatherbot
 //
 // By John Keefe
 // http://johnkeefe.net

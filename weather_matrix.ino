@@ -2,11 +2,14 @@
 *  This code goes a spark.io core, and is part of a #MakeEveryWeek  
 *  project by John Keefe. More info at http://johnkeefe.net
 * 
+*  Details on this project at 
+*    http://johnkeefe.net/make-every-week-entryway-weatherbot
+* 
 */
 
 // The next three include lines call in the libraries. To learn how
 // to add them to this project on the spark_io core, see:
-// 
+// http://johnkeefe.net/make-every-week-entryway-weatherbot
 
 // This #include statement was automatically added by the Spark IDE.
 #include "neopixel/neopixel.h"
